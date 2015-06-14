@@ -3,10 +3,11 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 import requests
 from s911.models import InstagramLocation, Incident, SocrataLocation, InstagramPost   
-from project.settings import INSTAGRAM_CLIENT_ID, INSTAGRAM_CLIENT_SECRET, SOCRATA_APP_TOKEN, SOCRATA_SECRET_TOKEN
+from project.settings import INSTAGRAM_CLIENT_ID, INSTAGRAM_CLIENT_SECRET, SOCRATA_APP_TOKEN, SOCRATA_SECRET_TOKEN, CARTODB_API_KEY
 from urllib import parse
 from datetime import datetime, timedelta
 from django.utils import timezone
+import os
 
 def socrata_time_parser(string):
 	year = int(string[0:4])
@@ -76,6 +77,11 @@ class SeedView(TemplateView):
 		save_instagram_locations()
 		save_instagram_posts()
 		return HttpResponse("success")
+
+def cartodb_sql():
+	url = 'https://dvass1994.cartodb.com/api/v2/sql?q={}&api_key={}'.format(SQL_statement, CARTODB_API_KEY)		
+
+
 
 
 
