@@ -13,7 +13,7 @@ class Post(models.Model):
 	location = models.ForeignKey('Location', related_name='posts')
 	# user = models.CharField(max_length=20)
 	# created_at = models.DateField()
-	data = models.CharField(max_length = 100)
+	#data = models.CharField(max_length = 100)
 	# url = models.URLField()
 
 class InstagramPost(Post):

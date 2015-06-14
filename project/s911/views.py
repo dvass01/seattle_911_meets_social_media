@@ -18,6 +18,18 @@ def socrata_time_parser(string):
 	second = int(string[17:19])
 	return timezone.now() - (datetime.now() - datetime(year, month, day, hour, minute, second))
 
+def cartodb_time_parse(datetime_object):
+	year = str(datetime_object.year)
+	month = str(datetime_object.month)
+	day = str(datetime_object.day)
+	hour = str(datetime_object.hour)
+	minute = str(datetime_object.minute)
+	second = str(datetime_object.second)
+	return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "Z"
+
+
+	# 2011-01-11T01:11:11Z
+
 def save_incidents():
 	base_url = "https://data.seattle.gov/resource/3k2p-39jp.json"
 	params = "?$where=event_clearance_date>=%272015-06-13T18:00:00%27"
@@ -78,8 +90,41 @@ class SeedView(TemplateView):
 		save_instagram_posts()
 		return HttpResponse("success")
 
-def cartodb_sql():
-	url = 'https://dvass1994.cartodb.com/api/v2/sql?q={}&api_key={}'.format(SQL_statement, CARTODB_API_KEY)		
+def cartodb_sql_incident():
+	incidents = Incident.objects.all()
+	for incident in incidents:
+		clearance_date = cartodb_time_parse(incident.clearance_date)
+		SQL_INSERT = "INSERT INTO incident (id, cad_event_number, clearance_date, description, latitude, longitude, location_name) "
+		SQL_VALUES = "VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(incident.id, incident.cad_event_number, clearance_date, incident.description, incident.location.latitude, incident.location.longitude, incident.location.socratalocation.name)
+		SQL_statement = SQL_INSERT + SQL_VALUES
+		url = 'https://dvass1994.cartodb.com/api/v2/sql?q={}&api_key={}'.format(SQL_statement, CARTODB_API_KEY)
+		response = requests.post(url)
+	print(response.json())
+	return response
+
+class CartodbIncident(TemplateView):
+
+	def get(self, request):
+		cartodb_sql()
+		return redirect("/")
+
+
+def cartodb_sql_instagram_post():
+	instagram_posts = InstagramPost.objects.all()
+	for instagram_post in instagram_posts:
+		SQL_INSERT = "INSERT INTO instagram_post (id, image_url, instagram_id, latitude, longitude, location_name) "
+		SQL_VALUES = "VALUES ('{}', '{}', '{}', '{}', '{}', '{}')".format(instagram_post.id, instagram_post.image_url, instagram_post.location.instagramlocation.instagram_id, instagram_post.location.latitude, instagram_post.location.longitude, instagram_post.location.instagramlocation.name)
+		SQL_statement = SQL_INSERT + SQL_VALUES
+		url = 'https://dvass1994.cartodb.com/api/v2/sql?q={}&api_key={}'.format(SQL_statement, CARTODB_API_KEY)
+		response = requests.post(url)
+	print(response.json())
+	return response
+
+class CartodbInstagramPost(TemplateView):
+
+	def get(self, request):
+		cartodb_sql_instagram_post()
+		return redirect("/")
 
 
 
