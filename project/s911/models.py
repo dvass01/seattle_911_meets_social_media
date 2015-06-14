@@ -4,6 +4,9 @@ from django.db import models
 class Incident(models.Model):
 	location = models.ForeignKey('Location', related_name='incidents')
 	description = models.CharField(max_length = 100)
+	clearance_date = models.DateTimeField()
+	cad_event_number = models.CharField(max_length = 20)
+
 	# time = models.DateField()
 
 class Post(models.Model):

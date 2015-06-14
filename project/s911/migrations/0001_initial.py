@@ -13,8 +13,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Incident',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('description', models.CharField(max_length=100)),
+                ('clearance_date', models.DateTimeField()),
+                ('cad_event_number', models.CharField(max_length=20)),
             ],
             options={
             },
@@ -23,9 +25,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Location',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, primary_key=True, auto_created=True)),
-                ('latitude', models.DecimalField(decimal_places=12, max_digits=15)),
-                ('longitude', models.DecimalField(decimal_places=12, max_digits=15)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('latitude', models.DecimalField(max_digits=15, decimal_places=12)),
+                ('longitude', models.DecimalField(max_digits=15, decimal_places=12)),
             ],
             options={
             },
@@ -34,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='InstagramLocation',
             fields=[
-                ('location_ptr', models.OneToOneField(parent_link=True, to='s911.Location', serialize=False, auto_created=True, primary_key=True)),
+                ('location_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='s911.Location', serialize=False)),
                 ('instagram_id', models.CharField(max_length=100)),
                 ('name', models.CharField(max_length=100)),
             ],
@@ -45,7 +47,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Post',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('data', models.CharField(max_length=100)),
             ],
             options={
@@ -55,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='InstagramPost',
             fields=[
-                ('post_ptr', models.OneToOneField(parent_link=True, to='s911.Post', serialize=False, auto_created=True, primary_key=True)),
+                ('post_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='s911.Post', serialize=False)),
                 ('image_url', models.URLField(max_length=100)),
             ],
             options={
@@ -65,7 +67,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SocrataLocation',
             fields=[
-                ('location_ptr', models.OneToOneField(parent_link=True, to='s911.Location', serialize=False, auto_created=True, primary_key=True)),
+                ('location_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='s911.Location', serialize=False)),
                 ('name', models.CharField(max_length=100)),
             ],
             options={
