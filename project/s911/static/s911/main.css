@@ -1,0 +1,35 @@
+body {
+  background-color: rgb(28, 28, 28);
+}
+
+#map {
+  text_align: center;
+}
+
+#header {
+  color: yellow;
+  text-align: center;
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+}
+
+#timeline {
+  margin: .5em; 
+  text-align: center;
+  color: white;
+}
+
+#timeline h5{
+  margin-bottom: 1em; 
+
+}
+
+#timeline a {
+  color: #99FFFF;
+}
+
+.instagram_image {
+  color: white;
+  padding-bottom: 2em;
+  padding-top: 0.5em;
+}

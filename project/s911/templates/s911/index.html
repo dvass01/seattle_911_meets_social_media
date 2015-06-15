@@ -1,26 +1,15 @@
+{% load staticfiles %}
+
 <html>
 <head>
     <title>911</title>
+    <link rel="stylesheet" href="{% static 's911/main.css' %}">
     <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css" />
     <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
     <style>
         html, body {width:100%; height:100%; padding: 0; margin: 0;}
-        #cartodb-map { width: 100%; height:60%; background: black;}
+        #cartodb-map { margin-left:10%; margin-left:10%; width: 80%; height:60%; background: black;}
     </style>
-
-<!--       // <script type="infowindow/html" id="infowindow_template">
-      //   <div class="cartodb-popup">
-      //     <a href="#close" class="cartodb-popup-close-button close">x</a>
-      //      <div class="cartodb-popup-content-wrapper">
-      //        <div class="cartodb-popup-content">
-      //          <h4>City: </h4>
-      //          <p>{{content.data.description}}</p>
-      //        </div>
-      //      </div>
-      //      <div class="cartodb-popup-tip-container"></div>
-      //   </div>
-      // </script>
- -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
         <script>
@@ -29,7 +18,7 @@
                 // initiate leaflet map
                 map = new L.Map('cartodb-map', { 
                     center: [47.608350400000,-122.339346000000],
-                    zoom: 11
+                    zoom: 10
                 })//end new L.Map
 
                 L.tileLayer('https://dnv9my2eseobd.cloudfront.net/v3/cartodb.map-4xtxp73f/{z}/{x}/{y}.png', {
@@ -61,54 +50,40 @@
                         success: function(json){
                             console.log(json);
                             var posts = "";
-                            console.log
+
                             for (i in json['posts']) {
                                 console.log(json['posts'][i]);
-                                posts += ("<p><a href='"+ json['posts'][i]['image_url'] + "'>" + json['posts'][i]['location_name'] + "</a></p>");
+                                posts += ("<p><a href='"+ json['posts'][i]['post_url'] + "'>" + json['posts'][i]['location_name'] + "   " + json['posts'][i]['created_time'] + "</a></p>");
+                                posts += ("<img class='instagram_image' src='" + json['posts'][i]['image_url'] + "'>")
                             };
                             $("#timeline").html(
-                                "<h3>" + json['incident']['description'] + "</h3>" + posts
+                                "<h3>" + json['incident']['description'] + "</h3>" + "<h4>" + json['incident']['location_name'] + "</h4><h5>" + json['incident']['clearance_date'] + "</h5><p> </p>" + posts
                                 )
-                            // key = json['api_key'];
-                            // $('.messages').append(key);
                         }
                     })
-                    
-          });
-        }).on('error', function() {
-              //log the error
-      });
+              });
+            }).on('error', function() {
+            });
     }  
   </script>
 
 </head>
 <body  onload="init()">
 
-    <p><a href = '/seed'>Seed</a></p>
+    <div id="header">
+    <h1> Seattle 911 Meets Social Media </h1>
+    </div>
+<!--     <p><a href = '/seed'>Seed</a></p>
     <p><a href = '/cartodb/incident'>Carto DB Incident</a></p>
     <p><a href = '/cartodb/instagrampost'>Carto DB Instagram Post</a></p>
-
+ -->
+    <div id='map'>
     <div id='cartodb-map'></div>
-    <div id='timeline'>Hello</div>
+    </div>
+    <div id='timeline'></div>
 
 </body>
 </html>
-
-
-
-
-               <!--  // cartodb.createLayer(map, {
-                //     user_name: 'dvass1994',
-                //     type: 'cartodb',
-                //     sublayers: [{
-                //     sql: "SELECT * FROM incident",
-                //     cartocss: '#incident {marker-fill: red;}'
-                //     },
-                //     {
-                //     sql: "SELECT * FROM instagram_post",
-                //     cartocss: '#instagram_post {marker-fill: #F0F0F0;}'
-                // } ]
-                // }).addTo(map) -->
 
 
 
