@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 import requests
-from s911.models import InstagramLocation, Incident, SocrataLocation, InstagramPost   
+from math import radians, cos, sin, asin, sqrt
+from s911.models import InstagramLocation, Incident, SocrataLocation, InstagramPost, Location, Post   
 from project.settings import INSTAGRAM_CLIENT_ID, INSTAGRAM_CLIENT_SECRET, SOCRATA_APP_TOKEN, SOCRATA_SECRET_TOKEN, CARTODB_API_KEY
 from urllib import parse
 from datetime import datetime, timedelta
@@ -32,7 +33,7 @@ def cartodb_time_parse(datetime_object):
 
 def save_incidents():
 	base_url = "https://data.seattle.gov/resource/3k2p-39jp.json"
-	params = "?$where=event_clearance_date>=%272015-06-13T18:00:00%27"
+	params = "?$where=event_clearance_date>=%272015-06-14T16:00:00%27"
 	headers = {"X-App-Token":SOCRATA_APP_TOKEN}
 	response = requests.get(base_url+params, headers=headers)
 	incidents = response.json()
@@ -54,7 +55,7 @@ def save_incidents():
 		new_incident.save()
 
 
-def save_instagram_locations():
+def save_instagram_locations_and_posts():
 	incidents = Incident.objects.all()
 	for incident in incidents:
 		latitude = incident.location.latitude
@@ -65,19 +66,20 @@ def save_instagram_locations():
 		for location in instagram_locations:
 			new_location = InstagramLocation(latitude = location['latitude'], longitude = location['longitude'], name = location['name'], instagram_id = location['id'])
 			new_location.save()
-			print (location)
+			url = 'https://api.instagram.com/v1/locations/{}/media/recent?access_token=260141671.59a8916.63821af94cab4cf8a6373d1d8828a4b6'.format(new_location.instagram_id)
+			r = requests.get(url)
+			instagram_posts = r.json()['data']
+			for post in instagram_posts:
+				new_post = InstagramPost(location=new_location,image_url=post['link'],incident = incident)
+				new_post.save()
 
-def save_instagram_posts():
-	instagram_locations = InstagramLocation.objects.all()
-	for location in instagram_locations:
-		instagram_id = location.instagram_id
-		url = 'https://api.instagram.com/v1/locations/{}/media/recent?access_token=260141671.59a8916.63821af94cab4cf8a6373d1d8828a4b6'.format(instagram_id)
-		r = requests.get(url)
-		instagram_posts = r.json()['data']
-		for post in instagram_posts:
-			new_post = InstagramPost(location=location,image_url=post['link'])
-			new_post.save()
-			print (new_post.image_url)
+def clean_database():
+	incidents = Incident.objects.all()
+	incidents.delete()
+	locations = Location.objects.all()
+	locations.delete()
+	posts = Post.objects.all()
+	posts.delete()
 
 class IndexView(TemplateView):
 	template_name = "s911/index.html"
@@ -86,8 +88,7 @@ class SeedView(TemplateView):
 
 	def get(self, request):
 		save_incidents()
-		save_instagram_locations()
-		save_instagram_posts()
+		save_instagram_locations_and_posts()
 		return HttpResponse("success")
 
 def cartodb_sql_incident():
@@ -102,10 +103,19 @@ def cartodb_sql_incident():
 	print(response.json())
 	return response
 
+def cartodb_sql_incident_delete():
+	incidents = Incident.objects.all()
+	SQL_statement = "DELETE FROM incident"
+	url = 'https://dvass1994.cartodb.com/api/v2/sql?q={}&api_key={}'.format(SQL_statement, CARTODB_API_KEY)
+	response = requests.post(url)
+	print(response.json())
+	return response	
+
 class CartodbIncident(TemplateView):
 
 	def get(self, request):
-		cartodb_sql()
+		cartodb_sql_incident_delete()
+		cartodb_sql_incident()
 		return redirect("/")
 
 
@@ -125,6 +135,40 @@ class CartodbInstagramPost(TemplateView):
 	def get(self, request):
 		cartodb_sql_instagram_post()
 		return redirect("/")
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r		
+
+class Timeline(TemplateView):
+
+	def get(self, request):
+		print (request)
+		incident_id = request.GET['id']
+		i = Incident.objects.get(id=incident_id)
+		all_posts = i.posts.all()
+		posts = []
+		for post in all_posts:
+			print (post.instagrampost.image_url, post.location.instagramlocation.name)
+			post_dict = {'image_url':post.instagrampost.image_url, 'location_name':post.location.instagramlocation.name}
+			posts.append(post_dict)
+		print (posts)
+		context_dict = {'incident':{'description':i.description, 'clearance_date' : i.clearance_date, 'location_name' : i.location.socratalocation.name}, 'posts' : posts}	
+		print (context_dict)
+		return JsonResponse(context_dict)
+
 
 
 
